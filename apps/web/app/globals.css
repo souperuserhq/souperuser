@@ -64,6 +64,8 @@ header nav {
 header nav a {
   color: var(--muted);
   text-decoration: none;
+  /* labels never break mid-word ("open source" stays one piece) */
+  white-space: nowrap;
 }
 
 header nav a:hover {
@@ -304,48 +306,111 @@ header nav a.nav-signin:hover {
   flex: none;
 }
 
+/* mobile: same left-to-right story, everything scaled to fit one row */
 @media (max-width: 560px) {
-  .flow-inner {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
+  header {
+    gap: 0.5rem;
+    /* if a screen is truly too narrow, the nav drops below as a whole row
+       instead of breaking labels apart */
+    flex-wrap: wrap;
+  }
+
+  .wordmark {
+    font-size: 14px;
+  }
+
+  header nav {
+    gap: 0.6rem;
+  }
+
+  header nav a {
+    font-size: 12px;
+  }
+
+  header nav a.nav-signin {
+    padding: 0.2rem 0.5rem;
   }
 
   .flow {
-    padding: 1.5rem 1rem;
+    padding: 1.25rem 0.6rem 4rem;
   }
 
-  /* labels back in the column flow */
-  .flow-labels {
-    position: static;
+  .flow-inner {
+    gap: 0.75rem;
+  }
+
+  /* outer cards: pin their hanging label stacks inside the frame instead of
+     letting the centered max-content block poke past the border */
+  .flow-node:first-child .flow-labels {
+    left: 0;
     transform: none;
-    width: auto;
   }
 
-  /* top: 4px clearance under the source card's labels; bottom: head lands on the next card */
+  .flow-node:last-child .flow-labels {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+
+  /* top: aligns the line with the smaller boxes' vertical center */
   .flow-arrow {
-    margin: -0.5rem 0 -0.75rem;
     min-width: 0;
-    gap: 0.5rem;
+    margin: 10px -0.75rem 0;
+    gap: 0.3rem;
   }
 
-  .flow-line {
-    align-self: center;
-    width: 1px;
-    height: 30px;
+  .flow-arrow-label {
+    font-size: 9.5px;
   }
 
-  .flow-line::after {
-    right: auto;
-    top: auto;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 4px solid transparent;
-    border-bottom-width: 0;
-    border-top-color: var(--muted);
+  .flow-box {
+    min-width: 50px;
+    min-height: 50px;
+    padding: 0.5rem 0.55rem;
   }
 
+  .flow-box svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .flow-box img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .flow-box-stack::before {
+    transform: translate(4px, -4px);
+  }
+
+  .flow-box-stack::after {
+    transform: translate(8px, -8px);
+  }
+
+  .flow-clients {
+    gap: 0.45rem;
+  }
+
+  .flow-client {
+    font-size: 10px;
+    gap: 0.35rem;
+  }
+
+  .flow-client svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .flow-label {
+    font-size: 10px;
+    line-height: 1.35;
+    margin-top: 0.4rem;
+  }
+
+  .flow-label-icon svg {
+    width: 11px;
+    height: 11px;
+  }
 }
 
 /* fx.sh-style inline tooltips: term (i) reveals a plain bordered box */
