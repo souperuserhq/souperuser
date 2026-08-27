@@ -1,0 +1,17 @@
+{
+  "name": "souperuser",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Read-only GitHub access for AI assistants. All the flavor. None of the root.",
+  "license": "MIT",
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "dev:ladle": "pnpm --filter @souperuser/ladle dev",
+    "dev:web": "pnpm --filter @souperuser/web dev"
+  }
+}

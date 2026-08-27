@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.next/
+out/
+.turbo/
+.wrangler/
+
+# Environment / secrets — never commit these
+.env
+.env.*
+!.env.example
+*.pem
+.dev.vars
+
+# Editor state
+.cursor/
+.vscode/
+.DS_Store
+*.tsbuildinfo
+
+# Personal agent memory — local only
+AGENTS.md

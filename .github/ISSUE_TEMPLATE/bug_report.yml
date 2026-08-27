@@ -1,0 +1,32 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! **Security issues:** please use
+        [private vulnerability reporting](https://github.com/souperuserhq/souperuser/security/advisories/new)
+        instead — never a public issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Setup
+      description: Hosted or self-hosted? Which MCP client (Claude, ChatGPT, Cursor, ...)?
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Worker logs or client errors, if any. Redact anything sensitive.
+      render: shell
+    validations:
+      required: false

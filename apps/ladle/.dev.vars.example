@@ -1,0 +1,19 @@
+# Copy to .dev.vars for local development (never commit .dev.vars).
+
+# Keep local dev pointing at localhost (overrides the production var)
+PUBLIC_URL=http://localhost:8787
+
+# From your GitHub App settings (https://github.com/settings/apps)
+GITHUB_APP_ID=123456
+GITHUB_APP_CLIENT_ID=Iv1.abc123
+GITHUB_APP_CLIENT_SECRET=...
+GITHUB_APP_SLUG=souperuser-dev
+GITHUB_WEBHOOK_SECRET=...
+
+# GitHub gives you a PKCS1 key ("BEGIN RSA PRIVATE KEY"). WebCrypto needs PKCS8.
+# Convert once:  openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in downloaded.pem
+# Then paste the result here as a single line with \n escapes, or use wrangler secret put.
+GITHUB_APP_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+
+# Any long random string:  openssl rand -hex 32
+COOKIE_SECRET=...

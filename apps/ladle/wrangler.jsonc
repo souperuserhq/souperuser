@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "souperuser-ladle",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  // Required for Client ID Metadata Documents (SSRF protection on outbound fetch)
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  // Static files (logo, favicon) served by Cloudflare before the Worker runs.
+  "assets": { "directory": "./public" },
+  "kv_namespaces": [
+    // workers-oauth-provider requires this exact binding name.
+    // Create with: wrangler kv namespace create OAUTH_KV
+    { "binding": "OAUTH_KV", "id": "ed5eba51bc764ac5a58ea2ee339e23d4" },
+    // Short-lived cache for GitHub installation tokens.
+    // Create with: wrangler kv namespace create CACHE
+    { "binding": "CACHE", "id": "a3ef04c8b2d34c658c748a1e56efa6e5" }
+  ],
+  "d1_databases": [
+    // Create with: wrangler d1 create souperuser
+    {
+      "binding": "DB",
+      "database_name": "souperuser",
+      "database_id": "d12340b2-1b89-4fa3-bdfa-30a0b46d8f4b",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Cloudflare provisions DNS + certs for this automatically on deploy.
+  "routes": [{ "pattern": "mcp.souperuser.com", "custom_domain": true }],
+  // Keep the workers.dev URL alive: connectors installed against it keep working.
+  "workers_dev": true,
+  "vars": {
+    // Overridden to http://localhost:8787 in .dev.vars for local dev
+    "PUBLIC_URL": "https://mcp.souperuser.com"
+  }
+}

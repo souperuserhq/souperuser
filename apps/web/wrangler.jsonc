@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "souperuser-web",
+  "compatibility_date": "2026-08-01",
+  // Static-only Worker: serves the Next.js export, no server code.
+  "assets": {
+    "directory": "./out"
+  },
+  // Cloudflare provisions DNS + certs for these automatically on deploy.
+  "routes": [
+    { "pattern": "souperuser.com", "custom_domain": true },
+    { "pattern": "www.souperuser.com", "custom_domain": true }
+  ]
+}
