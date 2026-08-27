@@ -44,7 +44,8 @@ a:hover {
 
 header {
   display: flex;
-  align-items: center;
+  /* baseline, not center: the bordered nav pill should share the text line */
+  align-items: baseline;
   gap: 0.75rem;
   margin-bottom: 4rem;
 }
@@ -57,6 +58,7 @@ header {
 header nav {
   margin-left: auto;
   display: flex;
+  align-items: baseline;
   gap: 1.25rem;
 }
 
@@ -80,6 +82,22 @@ header nav a.nav-signin {
 header nav a.nav-signin:hover {
   color: var(--accent);
   border-color: var(--accent);
+}
+
+/* signed-in state: @login hangs below the pill without moving the header */
+.nav-auth {
+  position: relative;
+  display: inline-flex;
+}
+
+.nav-login {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .intro {

@@ -4,8 +4,15 @@ export function esc(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-export function page(title: string, body: string): Response {
+export function page(title: string, body: string, opts: { login?: string } = {}): Response {
   const fullTitle = title === "Souperuser" ? "souperuser — all the flavor. none of the root." : `${title} — souperuser`;
+  // Same header as the marketing site; signed-in pages add sign-out + who.
+  const nav = opts.login
+    ? `<nav><span class="nav-auth">
+         <form method="post" action="/dash/logout" style="margin:0"><button class="pill">sign out</button></form>
+         <span class="nav-login">@${esc(opts.login)}</span>
+       </span></nav>`
+    : "";
   const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -20,6 +27,16 @@ export function page(title: string, body: string): Response {
   body { margin: 0; background: var(--bg); color: var(--ink);
          font: 14px/1.75 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   main { max-width: 660px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+  header { display: flex; align-items: baseline; margin: 0 0 2.5rem; }
+  .wordmark { font-size: 15px; font-weight: 700; color: var(--ink); text-decoration: none; }
+  .wordmark:hover { color: var(--accent); }
+  header nav { margin-left: auto; }
+  .nav-auth { position: relative; display: inline-flex; }
+  .pill { font: inherit; background: var(--bg); color: var(--ink); border: 1px solid var(--line);
+          border-radius: 6px; padding: 0.25rem 0.65rem; cursor: pointer; }
+  .pill:hover { color: var(--accent); border-color: var(--accent); }
+  .nav-login { position: absolute; top: 100%; right: 0; margin-top: 4px;
+               font-size: 12px; color: var(--muted); white-space: nowrap; }
   h1 { font-size: 16px; margin: 0 0 1.25rem; }
   h1 span { color: var(--accent); }
   h2 { font-size: 14px; margin: 2.5rem 0 1rem; }
@@ -47,7 +64,8 @@ export function page(title: string, body: string): Response {
                      border-radius: 4px; font: inherit; background: var(--bg); color: var(--ink); }
 </style>
 </head>
-<body><main>${body}</main></body>
+<body><main><header><a class="wordmark" href="/">souperuser</a>${nav}</header>
+${body}</main></body>
 </html>`;
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
 }

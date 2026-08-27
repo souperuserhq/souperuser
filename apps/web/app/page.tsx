@@ -1,4 +1,5 @@
 import { ClaudeMark, GitHubMark, McpMark, OpenAIMark } from "./logos";
+import { NavAuth } from "./nav-auth";
 
 const GITHUB_URL = "https://github.com/souperuserhq/souperuser";
 const LADLE_URL = "https://mcp.souperuser.com";
@@ -11,9 +12,7 @@ export default function Home() {
         <nav>
           <a href={GITHUB_URL}>source</a>
           <a href={`${GITHUB_URL}/blob/main/SECURITY.md`}>security</a>
-          <a className="nav-signin" href={`${LADLE_URL}/dash`}>
-            sign in
-          </a>
+          <NavAuth ladleUrl={LADLE_URL} />
         </nav>
       </header>
 

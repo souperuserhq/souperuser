@@ -68,6 +68,8 @@ export const appHandler = {
     if (path === "/webhooks/github" && request.method === "POST") return handleWebhook(request, env);
     if (path === "/") return landing(env);
     if (path === "/dash/login") return cookLogin(request, env);
+    if (path === "/dash/logout" && request.method === "POST") return cookLogout(request, env);
+    if (path === "/dash/whoami") return whoami(request, env);
     if (path === "/dash/callback") return cookCallback(request, env, url);
     if (path === "/dash" && request.method === "GET") return dashboard(request, env);
     if (path === "/dash/invites" && request.method === "POST") return createInvite(request, env);
@@ -121,6 +123,49 @@ async function cookCallback(request: Request, env: Env, url: URL): Promise<Respo
   });
 }
 
+async function cookLogout(request: Request, env: Env): Promise<Response> {
+  const id = getCookie(request, COOK_COOKIE);
+  if (id) await env.OAUTH_KV.delete(`cooksess:${id}`);
+  return new Response(null, {
+    status: 302,
+    headers: { location: "/", "set-cookie": cookieHeader(COOK_COOKIE, "", 0) },
+  });
+}
+
+/**
+ * Auth probe for the marketing site's nav. Site and Worker live on sibling
+ * hostnames of the same registrable domain, so the SameSite=Lax session cookie
+ * rides along on the fetch; CORS still applies because the origins differ.
+ * Only same-parent-domain origins (plus localhost for dev) may read the reply.
+ */
+async function whoami(request: Request, env: Env): Promise<Response> {
+  const headers = new Headers({ "content-type": "application/json", "cache-control": "no-store" });
+  const origin = request.headers.get("origin");
+  if (origin) {
+    let originHost: string;
+    try {
+      originHost = new URL(origin).hostname;
+    } catch {
+      return new Response(null, { status: 403 });
+    }
+    const workerHost = new URL(request.url).hostname;
+    const parent = workerHost.split(".").slice(1).join(".");
+    const allowed =
+      originHost === workerHost ||
+      originHost === parent ||
+      originHost.endsWith(`.${parent}`) ||
+      originHost === "localhost" ||
+      originHost === "127.0.0.1";
+    if (!allowed) return new Response(null, { status: 403 });
+    headers.set("access-control-allow-origin", origin);
+    headers.set("access-control-allow-credentials", "true");
+    headers.set("vary", "origin");
+  }
+  const session = await getCookSession(request, env);
+  if (!session) return new Response("{}", { status: 401, headers });
+  return new Response(JSON.stringify({ login: session.login }), { headers });
+}
+
 // ---------- Cook dashboard ----------
 
 async function dashboard(request: Request, env: Env): Promise<Response> {
@@ -141,6 +186,7 @@ async function dashboard(request: Request, env: Env): Promise<Response> {
       `<h1>Hi @${esc(session.login)}</h1>
        <div class="card"><p>No Souperuser installation of yours found yet. Only the person who installed the app manages its sharing.</p>
        <a class="btn" href="https://github.com/apps/${esc(env.GITHUB_APP_SLUG)}/installations/new">Install the GitHub App</a></div>`,
+      { login: session.login },
     );
   }
 
@@ -210,8 +256,9 @@ async function dashboard(request: Request, env: Env): Promise<Response> {
 
   return page(
     "Dashboard",
-    `<h1>Souperuser dashboard</h1><p class="muted">Signed in as @${esc(session.login)}</p>${sections.join("")}
+    `<h1>Souperuser dashboard</h1>${sections.join("")}
      <p class="muted"><a href="https://github.com/apps/${esc(env.GITHUB_APP_SLUG)}/installations/new">Install Souperuser on another account or org</a></p>`,
+    { login: session.login },
   );
 }
 
@@ -268,6 +315,7 @@ async function createInvite(request: Request, env: Env): Promise<Response> {
        <p class="muted">Menu: ${menuRepos.map(esc).join(", ")}</p>
      </div>
      <p><a href="/dash">Back to dashboard</a></p>`,
+    { login: session.login },
   );
 }
 
