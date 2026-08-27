@@ -138,18 +138,20 @@ export async function getInvite(env: Env, token: string): Promise<InviteRow | nu
   return env.DB.prepare(`SELECT * FROM invites WHERE token = ?`).bind(token).first<InviteRow>();
 }
 
-/** Burns the invite and creates the Taster in one atomic batch. */
-export async function consumeInvite(env: Env, invite: InviteRow): Promise<string> {
+/**
+ * Burns the invite, then creates the Taster. The UPDATE is the atomic claim:
+ * exactly one concurrent redemption can flip used_at from NULL, so a raced
+ * second request gets null instead of a second Taster.
+ */
+export async function consumeInvite(env: Env, invite: InviteRow): Promise<string | null> {
+  const claim = await env.DB.prepare(`UPDATE invites SET used_at = datetime('now') WHERE token = ? AND used_at IS NULL`)
+    .bind(invite.token)
+    .run();
+  if (claim.meta.changes !== 1) return null;
   const tasterId = crypto.randomUUID();
-  await env.DB.batch([
-    env.DB.prepare(`UPDATE invites SET used_at = datetime('now') WHERE token = ? AND used_at IS NULL`).bind(invite.token),
-    env.DB.prepare(`INSERT INTO tasters (id, installation_id, menu_id, label) VALUES (?, ?, ?, ?)`).bind(
-      tasterId,
-      invite.installation_id,
-      invite.menu_id,
-      invite.label,
-    ),
-  ]);
+  await env.DB.prepare(`INSERT INTO tasters (id, installation_id, menu_id, label) VALUES (?, ?, ?, ?)`)
+    .bind(tasterId, invite.installation_id, invite.menu_id, invite.label)
+    .run();
   return tasterId;
 }
 

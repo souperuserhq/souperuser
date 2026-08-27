@@ -12,6 +12,7 @@ import { appHandler } from "./app-handler.js";
 import { getTasterAccess } from "./db.js";
 import type { Env, TasterProps } from "./env.js";
 import { buildServer } from "./mcp.js";
+import { rateLimit, rateLimited } from "./ratelimit.js";
 
 const mcpApiHandler = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -31,13 +32,19 @@ const mcpApiHandler = {
 
     // Token already verified by workers-oauth-provider; grant props are on ctx.
     const props = (ctx as ExecutionContext & { props: TasterProps }).props;
+    // Throttle before any DB or GitHub work — one noisy client must not
+    // exhaust the installation's shared GitHub rate limit for everyone else.
+    if (!(await rateLimit(env, "mcp", props.tasterId, 60))) return rateLimited(60);
     const access = await getTasterAccess(env, props.tasterId);
     if (!access) {
       return new Response("Access revoked. Ask the engineer who invited you for a new invite.", { status: 403 });
     }
 
+    // Menu and installation token must derive from the same fresh Taster row,
+    // so the grant's frozen installationId is overridden with the current one.
+    const liveProps = { ...props, installationId: access.taster.installation_id };
     const handler = createMcpHandler(() =>
-      buildServer(env, { props, repoFullNames: access.repoFullNames }, (p) => ctx.waitUntil(p)),
+      buildServer(env, { props: liveProps, repoFullNames: access.repoFullNames }, (p) => ctx.waitUntil(p)),
     );
     return handler.fetch(request);
   },

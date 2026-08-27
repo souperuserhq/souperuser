@@ -15,10 +15,12 @@ import {
   replaceRepos,
   revokeTaster,
 } from "./db.js";
+import { originAllowed } from "./core/index.js";
 import { publicUrl, type Env } from "./env.js";
 import { exchangeUserCode, getUserLogin, listInstallationRepos, listUserInstallationIds } from "./github.js";
 import { esc, page } from "./html.js";
-import { COOK_COOKIE, cookieHeader, getCookie, signValue, TASTER_COOKIE, verifyValue } from "./session.js";
+import { rateLimit, rateLimited } from "./ratelimit.js";
+import { COOK_COOKIE, cookieHeader, getCookie, signValue, STATE_COOKIE, TASTER_COOKIE, verifyValue } from "./session.js";
 import { handleWebhook } from "./webhooks.js";
 
 interface CookSession {
@@ -102,25 +104,43 @@ function landing(env: Env): Response {
 
 // ---------- Cook (engineer) auth ----------
 
-function cookLogin(request: Request, env: Env): Response {
+async function cookLogin(request: Request, env: Env): Promise<Response> {
+  const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+  if (!(await rateLimit(env, "login", ip, 20))) return rateLimited(60);
+  // The state nonce ties the GitHub callback to the browser that started the
+  // flow (OAuth CSRF / session-fixation protection).
+  const state = randomToken();
   const redirect = new URL("https://github.com/login/oauth/authorize");
   redirect.searchParams.set("client_id", env.GITHUB_APP_CLIENT_ID);
   redirect.searchParams.set("redirect_uri", `${publicUrl(env, request)}/dash/callback`);
-  return Response.redirect(redirect.toString(), 302);
+  redirect.searchParams.set("state", state);
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: redirect.toString(),
+      "set-cookie": cookieHeader(STATE_COOKIE, await signValue(state, env.COOKIE_SECRET), 600),
+    },
+  });
 }
 
 async function cookCallback(request: Request, env: Env, url: URL): Promise<Response> {
   const code = url.searchParams.get("code");
   if (!code) return new Response("Missing code", { status: 400 });
+  const state = url.searchParams.get("state");
+  const stateCookie = getCookie(request, STATE_COOKIE);
+  const expectedState = stateCookie ? await verifyValue(stateCookie, env.COOKIE_SECRET) : null;
+  if (!state || !expectedState || state !== expectedState) {
+    return new Response("OAuth state mismatch — start again from the dashboard.", { status: 400 });
+  }
   const userToken = await exchangeUserCode(env, code);
   const [login, installationIds] = await Promise.all([getUserLogin(userToken), listUserInstallationIds(userToken)]);
   const sessionId = randomToken();
   const session: CookSession = { login, installationIds };
   await env.OAUTH_KV.put(`cooksess:${sessionId}`, JSON.stringify(session), { expirationTtl: 8 * 3600 });
-  return new Response(null, {
-    status: 302,
-    headers: { location: "/dash", "set-cookie": cookieHeader(COOK_COOKIE, sessionId, 8 * 3600) },
-  });
+  const headers = new Headers({ location: "/dash" });
+  headers.append("set-cookie", cookieHeader(COOK_COOKIE, sessionId, 8 * 3600));
+  headers.append("set-cookie", cookieHeader(STATE_COOKIE, "", 0));
+  return new Response(null, { status: 302, headers });
 }
 
 async function cookLogout(request: Request, env: Env): Promise<Response> {
@@ -136,7 +156,9 @@ async function cookLogout(request: Request, env: Env): Promise<Response> {
  * Auth probe for the marketing site's nav. Site and Worker live on sibling
  * hostnames of the same registrable domain, so the SameSite=Lax session cookie
  * rides along on the fetch; CORS still applies because the origins differ.
- * Only same-parent-domain origins (plus localhost for dev) may read the reply.
+ * Cross-origin readers are allowed by originAllowed (core/origin.ts), which
+ * anchors trust on PUBLIC_URL and never widens on public suffixes like
+ * workers.dev.
  */
 async function whoami(request: Request, env: Env): Promise<Response> {
   const headers = new Headers({ "content-type": "application/json", "cache-control": "no-store" });
@@ -149,14 +171,8 @@ async function whoami(request: Request, env: Env): Promise<Response> {
       return new Response(null, { status: 403 });
     }
     const workerHost = new URL(request.url).hostname;
-    const parent = workerHost.split(".").slice(1).join(".");
-    const allowed =
-      originHost === workerHost ||
-      originHost === parent ||
-      originHost.endsWith(`.${parent}`) ||
-      originHost === "localhost" ||
-      originHost === "127.0.0.1";
-    if (!allowed) return new Response(null, { status: 403 });
+    const publicHost = env.PUBLIC_URL ? new URL(env.PUBLIC_URL).hostname : null;
+    if (!originAllowed(originHost, workerHost, publicHost)) return new Response(null, { status: 403 });
     headers.set("access-control-allow-origin", origin);
     headers.set("access-control-allow-credentials", "true");
     headers.set("vary", "origin");
@@ -332,6 +348,8 @@ async function revoke(request: Request, env: Env): Promise<Response> {
 // ---------- Taster invite & connect ----------
 
 async function acceptInvite(request: Request, env: Env, token: string): Promise<Response> {
+  const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+  if (!(await rateLimit(env, "invite", ip, 20))) return rateLimited(60);
   const invite = await getInvite(env, token);
   if (!invite) return page("Invalid invite", `<h1>Invalid invite</h1><p>This invite link does not exist.</p>`);
   if (invite.used_at) {
@@ -342,6 +360,10 @@ async function acceptInvite(request: Request, env: Env, token: string): Promise<
   }
 
   const tasterId = await consumeInvite(env, invite);
+  if (!tasterId) {
+    // Lost a race against a concurrent redemption of the same link.
+    return page("Invite used", `<h1>Already used</h1><p>This invite was already used. Ask your engineer for a new one.</p>`);
+  }
   const cookie = await signValue(tasterId, env.COOKIE_SECRET);
   return new Response(null, {
     status: 302,

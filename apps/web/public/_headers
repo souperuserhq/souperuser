@@ -1,0 +1,8 @@
+# Security headers for the static site (honored by Cloudflare static assets).
+# script-src needs 'unsafe-inline' because Next.js static export inlines its
+# hydration bootstrap; connect-src allows the nav's /dash/whoami auth probe.
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src https://mcp.souperuser.com; base-uri 'none'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer

@@ -140,16 +140,19 @@ export function getContents(token: string, fullName: string, path: string): Prom
 
 export interface SearchMatch {
   path: string;
+  /** Repository the match came from — callers must check it against the menu. */
+  repoFullName: string;
   fragments: string[];
 }
 
 export async function searchCode(token: string, fullName: string, query: string): Promise<SearchMatch[]> {
   const q = encodeURIComponent(`${query} repo:${fullName}`);
   const data = await ghFetch<{
-    items: { path: string; text_matches?: { fragment: string }[] }[];
+    items: { path: string; repository: { full_name: string }; text_matches?: { fragment: string }[] }[];
   }>(token, `/search/code?q=${q}&per_page=10`, "application/vnd.github.text-match+json");
   return data.items.map((item) => ({
     path: item.path,
+    repoFullName: item.repository.full_name,
     fragments: (item.text_matches ?? []).map((m) => m.fragment),
   }));
 }

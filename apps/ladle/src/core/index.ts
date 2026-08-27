@@ -1,4 +1,6 @@
 export { isPathAllowed, filterTree, MAX_FILE_BYTES, BLOCKED_PATH_PATTERNS } from "./secrets-filter.js";
+export { hasScopeQualifier } from "./search-guard.js";
+export { originAllowed } from "./origin.js";
 
 /** A GitHub App installation — one per org/user that installed Souperuser. */
 export interface Installation {

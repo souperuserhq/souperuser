@@ -3,7 +3,7 @@
  * One fresh McpServer per request, scoped to a single Taster's Menu.
  */
 import { McpServer } from "@modelcontextprotocol/server";
-import { filterTree, isPathAllowed, MAX_FILE_BYTES } from "./core/index.js";
+import { filterTree, hasScopeQualifier, isPathAllowed, MAX_FILE_BYTES } from "./core/index.js";
 import * as z from "zod";
 import { logKitchen } from "./db.js";
 import type { Env, TasterProps } from "./env.js";
@@ -97,7 +97,8 @@ export function buildServer(env: Env, access: TasterAccess, waitUntil: (p: Promi
         return text(sections.filter(Boolean).join("\n\n"));
       } catch (err) {
         if (err instanceof NotFoundError) return toolError(`Repository "${repo}" was not found on GitHub.`);
-        throw err;
+        console.error(`repo_overview failed for ${repo}:`, err);
+        return toolError("Unexpected error reading from GitHub. Try again in a moment.");
       }
     },
   );
@@ -115,15 +116,30 @@ export function buildServer(env: Env, access: TasterAccess, waitUntil: (p: Promi
     async ({ repo, query }) => {
       const denied = requireRepo(repo);
       if (denied) return toolError(denied);
-      log("search_code", repo, query);
-      const matches = (await searchCode(await token(), repo, query)).filter((m) => isPathAllowed(m.path));
-      if (matches.length === 0) {
-        return text(`No matches for "${query}" in ${repo}. Try broader terms, or use repo_overview to browse the file tree.`);
+      if (hasScopeQualifier(query)) {
+        log("search_code:blocked", repo, query);
+        return toolError(
+          `Search terms can't include repo:, org: or user: qualifiers — this search is already scoped to ${repo}.`,
+        );
       }
-      const body = matches
-        .map((m) => `### ${m.path}\n${m.fragments.map((f) => "```\n" + f + "\n```").join("\n") || "(match in file)"}`)
-        .join("\n\n");
-      return text(`Matches for "${query}" in ${repo}:\n\n${body}\n\nUse read_file to see the full contents of any of these files.`);
+      log("search_code", repo, query);
+      try {
+        // Belt and suspenders: only results from the requested repo are served,
+        // so no query can widen the search beyond the menu.
+        const matches = (await searchCode(await token(), repo, query)).filter(
+          (m) => m.repoFullName.toLowerCase() === repo.toLowerCase() && isPathAllowed(m.path),
+        );
+        if (matches.length === 0) {
+          return text(`No matches for "${query}" in ${repo}. Try broader terms, or use repo_overview to browse the file tree.`);
+        }
+        const body = matches
+          .map((m) => `### ${m.path}\n${m.fragments.map((f) => "```\n" + f + "\n```").join("\n") || "(match in file)"}`)
+          .join("\n\n");
+        return text(`Matches for "${query}" in ${repo}:\n\n${body}\n\nUse read_file to see the full contents of any of these files.`);
+      } catch (err) {
+        console.error(`search_code failed for ${repo}:`, err);
+        return toolError("Search failed — GitHub may have rejected the query syntax. Simplify the terms and try again.");
+      }
     },
   );
 
@@ -160,7 +176,8 @@ export function buildServer(env: Env, access: TasterAccess, waitUntil: (p: Promi
         return text(`// ${repo}/${result.path}${truncated ? " (truncated)" : ""}\n${body}`);
       } catch (err) {
         if (err instanceof NotFoundError) return toolError(`"${path}" was not found in ${repo}.`);
-        throw err;
+        console.error(`read_file failed for ${repo}/${path}:`, err);
+        return toolError("Unexpected error reading from GitHub. Try again in a moment.");
       }
     },
   );

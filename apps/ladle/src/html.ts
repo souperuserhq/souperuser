@@ -67,5 +67,20 @@ export function page(title: string, body: string, opts: { login?: string } = {})
 <body><main><header><a class="wordmark" href="/">souperuser</a>${nav}</header>
 ${body}</main></body>
 </html>`;
-  return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+  return new Response(html, {
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      // These pages run no JavaScript at all, so the policy blocks scripts
+      // outright; inline styles are the only allowance. frame-ancestors and
+      // X-Frame-Options stop the dashboard's forms being framed (clickjacking),
+      // no-referrer keeps invite URLs out of Referer headers, and no-store
+      // keeps personalized pages (dashboard, invite links) out of caches.
+      "content-security-policy":
+        "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+      "x-frame-options": "DENY",
+      "x-content-type-options": "nosniff",
+      "referrer-policy": "no-referrer",
+      "cache-control": "no-store",
+    },
+  });
 }

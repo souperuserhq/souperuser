@@ -19,7 +19,7 @@ export const BLOCKED_PATH_PATTERNS: RegExp[] = [
   // Environment files: .env, .env.local, .env.production — but not .env.example
   /(^|\/)\.env(?!\.(example|sample|template|dist)$)(\.[^/]*)?$/i,
   // Private keys and certificates
-  /\.(pem|key|p12|pfx|jks|keystore|asc|gpg|pgp)$/i,
+  /\.(pem|key|p8|p12|pfx|jks|keystore|asc|gpg|pgp)$/i,
   // SSH keys and config
   /(^|\/)id_(rsa|dsa|ecdsa|ed25519)(\.[^/]*)?$/i,
   /(^|\/)\.ssh(\/|$)/i,

@@ -21,6 +21,7 @@ describe("isPathAllowed", () => {
     expect(isPathAllowed("signing.key")).toBe(false);
     expect(isPathAllowed("app.p12")).toBe(false);
     expect(isPathAllowed("release.keystore")).toBe(false);
+    expect(isPathAllowed("keys/AuthKey_ABC123.p8")).toBe(false);
   });
 
   it("blocks SSH keys", () => {

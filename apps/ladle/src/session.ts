@@ -54,3 +54,5 @@ export function cookieHeader(name: string, value: string, maxAgeSeconds: number)
 
 export const TASTER_COOKIE = "su_taster";
 export const COOK_COOKIE = "su_cook";
+/** Short-lived CSRF nonce for the GitHub OAuth round-trip (SameSite=Lax rides the top-level redirect). */
+export const STATE_COOKIE = "su_oauth_state";
