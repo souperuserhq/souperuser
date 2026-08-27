@@ -35,8 +35,8 @@ export function page(title: string, body: string, opts: { login?: string } = {})
   .pill { font: inherit; background: var(--bg); color: var(--ink); border: 1px solid var(--line);
           border-radius: 6px; padding: 0.25rem 0.65rem; cursor: pointer; }
   .pill:hover { color: var(--accent); border-color: var(--accent); }
-  .nav-login { position: absolute; top: 100%; right: 0; margin-top: 4px;
-               font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .nav-login { position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+               margin-top: 4px; font-size: 12px; color: var(--muted); white-space: nowrap; }
   h1 { font-size: 16px; margin: 0 0 1.25rem; }
   h1 span { color: var(--accent); }
   h2 { font-size: 14px; margin: 2.5rem 0 1rem; }

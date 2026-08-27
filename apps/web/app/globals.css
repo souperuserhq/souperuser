@@ -93,7 +93,8 @@ header nav a.nav-signin:hover {
 .nav-login {
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   margin-top: 6px;
   font-size: 12px;
   color: var(--muted);

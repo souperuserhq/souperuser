@@ -256,7 +256,7 @@ async function dashboard(request: Request, env: Env): Promise<Response> {
 
   return page(
     "Dashboard",
-    `<h1>Souperuser dashboard</h1>${sections.join("")}
+    `${sections.join("")}
      <p class="muted"><a href="https://github.com/apps/${esc(env.GITHUB_APP_SLUG)}/installations/new">Install Souperuser on another account or org</a></p>`,
     { login: session.login },
   );
