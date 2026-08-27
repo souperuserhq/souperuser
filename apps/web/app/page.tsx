@@ -10,14 +10,14 @@ export default function Home() {
       <header>
         <span className="wordmark">souperuser</span>
         <nav>
-          <a href={GITHUB_URL}>source</a>
+          <a href={GITHUB_URL}>open source</a>
           <a href={`${GITHUB_URL}/blob/main/SECURITY.md`}>security</a>
           <NavAuth ladleUrl={LADLE_URL} />
         </nav>
       </header>
 
       <h1 className="intro">
-        souperuser gives your teammates&apos; AI read-only access to your repos — no GitHub account needed.
+        souperuser gives your teammates&apos; AI <span className="dotted">read-only</span> access to your repos
       </h1>
 
       <figure
@@ -74,8 +74,8 @@ export default function Home() {
             </div>
             <span className="flow-labels">
               <span className="flow-label flow-label-title">their AI</span>
-              <span className="flow-label flow-label-ok">no github account</span>
-              <span className="flow-label flow-label-ok">needed</span>
+              <span className="flow-label">no github account</span>
+              <span className="flow-label">needed</span>
             </span>
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function Home() {
       </p>
 
       <p>
-        Deliberately boring: one Cloudflare Worker, nothing stored, live GitHub proxy, a{" "}
+        <span className="dotted">Deliberately boring</span>: one Cloudflare Worker, nothing stored, live GitHub proxy, a{" "}
         <span
           className="tip"
           tabIndex={0}
@@ -125,7 +125,7 @@ export default function Home() {
 
       <p className="sep">* * *</p>
 
-      <h2>why you can say yes</h2>
+      <h2>what you&apos;re actually approving</h2>
       <ul>
         <li>read-only by construction — GitHub enforces the boundary, not our code.</li>
         <li>nothing stored — files are fetched live. no index, no embeddings, no copies.</li>

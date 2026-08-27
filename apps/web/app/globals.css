@@ -4,7 +4,6 @@
   --line: #e2e2e2;
   --bg: #ffffff;
   --accent: #e0402e;
-  --ok: #1a7f37;
 }
 
 * {
@@ -106,6 +105,11 @@ header nav a.nav-signin:hover {
   font-size: 14px;
   font-weight: 400;
   text-align: center;
+}
+
+.dotted {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
 }
 
 /* flow diagram */
@@ -233,10 +237,6 @@ header nav a.nav-signin:hover {
 /* card name in ink; supporting points stay muted */
 .flow-label-title {
   color: var(--ink);
-}
-
-.flow-label-ok {
-  color: var(--ok);
 }
 
 .flow-arrow {
