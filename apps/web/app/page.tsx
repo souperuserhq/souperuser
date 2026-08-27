@@ -1,4 +1,4 @@
-import { ClaudeMark, GitHubMark, McpMark, OpenAIMark } from "./logos";
+import { ClaudeMark, CloudflareMark, GitHubMark, McpMark, OpenAIMark } from "./logos";
 import { NavAuth } from "./nav-auth";
 
 const GITHUB_URL = "https://github.com/souperuserhq/souperuser";
@@ -82,7 +82,7 @@ export default function Home() {
       </figure>
 
       <p>
-        You install a read-only GitHub App and pick which repos to share. Your PM gets an invite link, connects Claude,
+        You install a read-only GitHub App and pick which repos to share. Your teammate gets an invite link, connects Claude,
         ChatGPT, or any AI that speaks{" "}
         <span
           className="tip"
@@ -95,7 +95,7 @@ export default function Home() {
       </p>
 
       <p>
-        <span className="dotted">Deliberately boring</span>: one Cloudflare Worker, nothing stored, live GitHub proxy, a{" "}
+        <span className="dotted">Deliberately boring</span>: one <span className="inline-mark"><CloudflareMark /></span> Cloudflare Worker, nothing stored, live GitHub proxy, a{" "}
         <span
           className="tip"
           tabIndex={0}

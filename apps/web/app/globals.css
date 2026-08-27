@@ -112,6 +112,18 @@ header nav a.nav-signin:hover {
   text-underline-offset: 3px;
 }
 
+.inline-mark {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -0.15em;
+  margin-right: 0.15em;
+}
+
+.inline-mark svg {
+  width: 0.95em;
+  height: 0.95em;
+}
+
 /* flow diagram */
 .flow {
   margin: 2.5rem 0;
