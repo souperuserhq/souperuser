@@ -69,6 +69,19 @@ header nav a:hover {
   color: var(--accent);
 }
 
+/* the one visually distinct nav action: where the hosted app starts */
+header nav a.nav-signin {
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.25rem 0.65rem;
+}
+
+header nav a.nav-signin:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .intro {
   margin: 0 0 1.5rem;
   font-size: 14px;

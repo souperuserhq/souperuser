@@ -11,7 +11,9 @@ export default function Home() {
         <nav>
           <a href={GITHUB_URL}>source</a>
           <a href={`${GITHUB_URL}/blob/main/SECURITY.md`}>security</a>
-          <a href={`${LADLE_URL}/dash`}>dashboard</a>
+          <a className="nav-signin" href={`${LADLE_URL}/dash`}>
+            sign in
+          </a>
         </nav>
       </header>
 
