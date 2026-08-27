@@ -6,20 +6,46 @@
   "license": "MIT",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "migrate:local": "wrangler d1 migrations apply souperuser --local",
-    "migrate:remote": "wrangler d1 migrations apply souperuser --remote"
+    "test": "vitest run",
+    "migrate:local": "wrangler d1 migrations apply DB --local",
+    "migrate:remote": "wrangler d1 migrations apply DB --remote"
+  },
+  "cloudflare": {
+    "bindings": {
+      "GITHUB_APP_ID": {
+        "description": "The App ID shown at the top of your [GitHub App settings](https://github.com/settings/apps) page."
+      },
+      "GITHUB_APP_CLIENT_ID": {
+        "description": "Client ID from the same GitHub App settings page."
+      },
+      "GITHUB_APP_CLIENT_SECRET": {
+        "description": "Generate a client secret in your GitHub App settings."
+      },
+      "GITHUB_APP_SLUG": {
+        "description": "Your GitHub App's URL slug — the `<slug>` in github.com/apps/`<slug>`."
+      },
+      "GITHUB_APP_PRIVATE_KEY": {
+        "description": "Your GitHub App private key converted to PKCS8: `openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in downloaded.pem`"
+      },
+      "GITHUB_WEBHOOK_SECRET": {
+        "description": "The webhook secret you set in your GitHub App settings. Any random string: `openssl rand -hex 32`"
+      },
+      "COOKIE_SECRET": {
+        "description": "Random string for signing sessions and invite links: `openssl rand -hex 32`"
+      }
+    }
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "^0.10.3",
     "@modelcontextprotocol/server": "^2.0.0",
-    "@souperuser/core": "workspace:*",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",
     "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
     "wrangler": "^4.124.0"
   }
 }

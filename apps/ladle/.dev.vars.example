@@ -1,7 +1,6 @@
 # Copy to .dev.vars for local development (never commit .dev.vars).
-
-# Keep local dev pointing at localhost (overrides the production var)
-PUBLIC_URL=http://localhost:8787
+# PUBLIC_URL is not needed here — the Worker uses each request's own origin
+# (http://localhost:8787 in dev) unless you set one.
 
 # From your GitHub App settings (https://github.com/settings/apps)
 GITHUB_APP_ID=123456

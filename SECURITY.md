@@ -14,7 +14,7 @@ You can expect an initial response within a few days. Please include reproductio
 - **GitHub enforces the outer boundary**: installation tokens can only read repos the installing engineer selected. Application bugs cannot widen that boundary.
 - **Per-user menus**: every access token is bound to one Taster, whose Menu is a subset of one installation's repos, checked on every tool call.
 - **No code storage**: repo contents are fetched from GitHub at request time and never persisted. Only short-lived installation tokens are cached (KV, 55 minutes).
-- **Sensitive-file filter**: paths matching key/credential patterns are never served — see [`packages/core/src/secrets-filter.ts`](packages/core/src/secrets-filter.ts).
+- **Sensitive-file filter**: paths matching key/credential patterns are never served — see [`apps/ladle/src/core/secrets-filter.ts`](apps/ladle/src/core/secrets-filter.ts).
 - **Audit log**: every tool call is recorded in the Kitchen Log.
 
 ## Scope

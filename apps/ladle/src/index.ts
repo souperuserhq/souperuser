@@ -15,11 +15,13 @@ import { buildServer } from "./mcp.js";
 
 const mcpApiHandler = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const publicHost = new URL(env.PUBLIC_URL).hostname;
-    // A *.workers.dev request can only reach this Worker via its own route, so
-    // the Worker's workers.dev hostname stays allowed alongside the custom
-    // domain (keeps connectors installed against the old URL working).
     const requestHost = new URL(request.url).hostname;
+    // When PUBLIC_URL is unset (the default self-host setup), the request's own
+    // host is canonical — Cloudflare only routes hostnames configured for this
+    // Worker. A *.workers.dev request can only reach this Worker via its own
+    // route, so that hostname stays allowed alongside the custom domain
+    // (keeps connectors installed against the old URL working).
+    const publicHost = env.PUBLIC_URL ? new URL(env.PUBLIC_URL).hostname : requestHost;
     const allowedHosts = [publicHost, "localhost", "127.0.0.1"];
     if (requestHost.endsWith(".workers.dev")) allowedHosts.push(requestHost);
     const rejected =

@@ -15,7 +15,7 @@ import {
   replaceRepos,
   revokeTaster,
 } from "./db.js";
-import type { Env } from "./env.js";
+import { publicUrl, type Env } from "./env.js";
 import { exchangeUserCode, getUserLogin, listInstallationRepos, listUserInstallationIds } from "./github.js";
 import { esc, page } from "./html.js";
 import { COOK_COOKIE, cookieHeader, getCookie, signValue, TASTER_COOKIE, verifyValue } from "./session.js";
@@ -67,7 +67,7 @@ export const appHandler = {
 
     if (path === "/webhooks/github" && request.method === "POST") return handleWebhook(request, env);
     if (path === "/") return landing(env);
-    if (path === "/dash/login") return cookLogin(env);
+    if (path === "/dash/login") return cookLogin(request, env);
     if (path === "/dash/callback") return cookCallback(request, env, url);
     if (path === "/dash" && request.method === "GET") return dashboard(request, env);
     if (path === "/dash/invites" && request.method === "POST") return createInvite(request, env);
@@ -100,10 +100,10 @@ function landing(env: Env): Response {
 
 // ---------- Cook (engineer) auth ----------
 
-function cookLogin(env: Env): Response {
+function cookLogin(request: Request, env: Env): Response {
   const redirect = new URL("https://github.com/login/oauth/authorize");
   redirect.searchParams.set("client_id", env.GITHUB_APP_CLIENT_ID);
-  redirect.searchParams.set("redirect_uri", `${env.PUBLIC_URL}/dash/callback`);
+  redirect.searchParams.set("redirect_uri", `${publicUrl(env, request)}/dash/callback`);
   return Response.redirect(redirect.toString(), 302);
 }
 
@@ -258,7 +258,7 @@ async function createInvite(request: Request, env: Env): Promise<Response> {
     expiresAt,
   });
 
-  const link = `${env.PUBLIC_URL}/invite/${token}`;
+  const link = `${publicUrl(env, request)}/invite/${token}`;
   return page(
     "Invite created",
     `<h1>Invite created</h1>
@@ -306,7 +306,7 @@ async function connectPage(request: Request, env: Env): Promise<Response> {
   if (!tasterId) {
     return page("Connect", `<h1>Almost there</h1><p>Open your invite link first (ask your engineer if you don't have one).</p>`);
   }
-  const mcpUrl = `${env.PUBLIC_URL}/mcp`;
+  const mcpUrl = `${publicUrl(env, request)}/mcp`;
   // One-click install links (both officially documented formats)
   const claudeLink = `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Souperuser&connectorUrl=${encodeURIComponent(mcpUrl)}`;
   const cursorConfig = encodeURIComponent(btoa(JSON.stringify({ type: "http", url: mcpUrl })));

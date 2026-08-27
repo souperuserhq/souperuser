@@ -7,8 +7,10 @@ export interface Env {
   /** Injected by workers-oauth-provider on the default handler. */
   OAUTH_PROVIDER: OAuthHelpers;
 
-  /** Public base URL of this Worker, e.g. https://mcp.souperuser.com */
-  PUBLIC_URL: string;
+  /** Optional canonical base URL, e.g. https://mcp.souperuser.com — set as a
+   *  secret when serving a custom domain. Unset, each request's own origin is
+   *  used, which is always correct for the default *.workers.dev setup. */
+  PUBLIC_URL?: string;
 
   // GitHub App credentials (secrets — set via `wrangler secret put` or .dev.vars)
   GITHUB_APP_ID: string;
@@ -22,6 +24,11 @@ export interface Env {
 
   /** Random secret for signing session cookies and invite payloads. */
   COOKIE_SECRET: string;
+}
+
+/** Canonical public origin: PUBLIC_URL when set, else the request's own origin. */
+export function publicUrl(env: Env, request: Request): string {
+  return env.PUBLIC_URL ? env.PUBLIC_URL.replace(/\/+$/, "") : new URL(request.url).origin;
 }
 
 /** Props stored in the OAuth grant and delivered to the MCP handler. */

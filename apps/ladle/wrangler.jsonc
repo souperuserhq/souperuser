@@ -24,12 +24,10 @@
       "migrations_dir": "migrations"
     }
   ],
-  // Cloudflare provisions DNS + certs for this automatically on deploy.
-  "routes": [{ "pattern": "mcp.souperuser.com", "custom_domain": true }],
-  // Keep the workers.dev URL alive: connectors installed against it keep working.
-  "workers_dev": true,
-  "vars": {
-    // Overridden to http://localhost:8787 in .dev.vars for local dev
-    "PUBLIC_URL": "https://mcp.souperuser.com"
-  }
+  // The Worker serves on its *.workers.dev URL by default — no domain setup needed.
+  "workers_dev": true
+  // Serving a custom domain? Uncomment, set your hostname (Cloudflare provisions
+  // DNS + certs on deploy), and run:  wrangler secret put PUBLIC_URL
+  // with the full origin (e.g. https://mcp.example.com) so links stay canonical.
+  // "routes": [{ "pattern": "mcp.example.com", "custom_domain": true }]
 }

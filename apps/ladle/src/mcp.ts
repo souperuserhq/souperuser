@@ -3,7 +3,7 @@
  * One fresh McpServer per request, scoped to a single Taster's Menu.
  */
 import { McpServer } from "@modelcontextprotocol/server";
-import { filterTree, isPathAllowed, MAX_FILE_BYTES } from "@souperuser/core";
+import { filterTree, isPathAllowed, MAX_FILE_BYTES } from "./core/index.js";
 import * as z from "zod";
 import { logKitchen } from "./db.js";
 import type { Env, TasterProps } from "./env.js";
